@@ -1,0 +1,11 @@
+Value Required INTERFACE (\S+)
+Value IP_ADDRESS (\S+)
+Value PREFIX_LENGTH (\d+)
+
+Start
+  ^Interface ${INTERFACE} is.* -> Begin Interface
+  ^\s+inet ${IP_ADDRESS}/${PREFIX_LENGTH} -> Record
+  ^\s+inet6 ${IP_ADDRESS}/${PREFIX_LENGTH} -> Record
+
+Interface
+  ^.* -> Start

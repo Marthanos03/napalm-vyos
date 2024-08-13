@@ -1,0 +1,16 @@
+Value Required INTERFACE (\S+)
+Value STATUS (up|down)
+Value PROTOCOL (up|down)
+Value DESCRIPTION (.*)
+Value LAST_FLAPPED (\S+)
+Value MAC (\S+)
+Value SPEED (\d+)
+
+Start
+  ^Interface: ${INTERFACE}
+  ^\s+Status: ${STATUS}
+  ^\s+Protocol: ${PROTOCOL}
+  ^\s+Description: ${DESCRIPTION}
+  ^\s+Last flapped: ${LAST_FLAPPED}
+  ^\s+MAC: ${MAC}
+  ^\s+Speed: ${SPEED} -> Record

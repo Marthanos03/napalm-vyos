@@ -1,0 +1,10 @@
+Value Required INTERFACE (\S+)
+Value RX_PACKETS (\d+)
+Value TX_PACKETS (\d+)
+Value RX_ERRORS (\d+)
+Value TX_ERRORS (\d+)
+
+Start
+  ^Interface ${INTERFACE} is.*
+  ^\s+RX packets: ${RX_PACKETS} errors: ${RX_ERRORS}
+  ^\s+TX packets: ${TX_PACKETS} errors: ${TX_ERRORS} -> Record

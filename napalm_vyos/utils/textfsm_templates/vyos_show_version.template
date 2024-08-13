@@ -1,0 +1,12 @@
+Value Required HOSTNAME (\S+)
+Value OS_VERSION (\S+)
+Value MODEL (\S+)
+Value SERIAL (\S+)
+Value UPTIME (\S+)
+
+Start
+  ^Version: ${OS_VERSION}
+  ^Hostname: ${HOSTNAME}
+  ^Model: ${MODEL}
+  ^Serial: ${SERIAL}
+  ^Uptime: ${UPTIME} -> Record
