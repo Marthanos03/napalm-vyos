@@ -104,14 +104,15 @@ class VyosDriver(NetworkDriver):
             version_data = fsm.ParseText(version)
 
         facts = {
-            'uptime': uptime_data[0][0] + uptime_data[0][1],
+            'uptime': int(uptime_data[0][0])*60 +
+            int(uptime_data[0][1]),
             'vendor': 'VyOS',
             'os_version': version_data[0][0],
             'serial_number': version_data[0][1],
             'model': version_data[0][2],
             'hostname': host,
             'fqdn': host,
-            'interface_list': self.get_interfaces().keys()
+            'interface_list': [key for key in self.get_interfaces().keys()]
         }
         return facts
 
@@ -232,3 +233,22 @@ class VyosDriver(NetworkDriver):
             }
 
         return interfaces_counters
+
+
+# driver = VyosDriver(hostname='192.168.0.28', username='vyos', password='vyos')
+
+# print(driver.is_alive())
+
+# driver.open()
+
+# print(driver.is_alive())
+
+# print(driver.get_facts())
+# # print(driver.get_interfaces())
+# # print(driver.get_interfaces_counters())
+# # print(driver.get_interfaces_ip())
+# # print(driver.get_config())
+
+# driver.close()
+
+# print(driver.is_alive())
