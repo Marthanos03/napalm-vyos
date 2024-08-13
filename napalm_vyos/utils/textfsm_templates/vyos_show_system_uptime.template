@@ -1,0 +1,5 @@
+Value MINUTES (\S+)
+Value SECONDS (\S+)
+
+Start
+  ^Uptime:\s+${MINUTES}\s+${SECONDS} -> Record

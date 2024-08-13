@@ -1,16 +1,9 @@
-Value Required INTERFACE (\S+)
-Value STATUS (up|down)
-Value PROTOCOL (up|down)
-Value DESCRIPTION (.*)
-Value LAST_FLAPPED (\S+)
-Value MAC (\S+)
-Value SPEED (\d+)
+Value INTERFACE (\S+)
+Value IP_ADDRESS (\S+)
+Value MAC_ADDRESS (\S+)
+Value VRF (\S+)
+Value MTU (\d+)
+Value STATE_LINK (\S+)
 
 Start
-  ^Interface: ${INTERFACE}
-  ^\s+Status: ${STATUS}
-  ^\s+Protocol: ${PROTOCOL}
-  ^\s+Description: ${DESCRIPTION}
-  ^\s+Last flapped: ${LAST_FLAPPED}
-  ^\s+MAC: ${MAC}
-  ^\s+Speed: ${SPEED} -> Record
+  ^${INTERFACE}\s+${IP_ADDRESS}\s+${MAC_ADDRESS}\s+${VRF}\s+${MTU}\s+${STATE_LINK} -> Record

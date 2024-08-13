@@ -1,11 +1,10 @@
-Value Required INTERFACE (\S+)
+Value INTERFACE (\S+)
 Value IP_ADDRESS (\S+)
-Value PREFIX_LENGTH (\d+)
+Value PREFIX (\S+)
+Value MAC_ADDRESS (\S+)
+Value VRF (\S+)
+Value MTU (\d+)
+Value STATE_LINK (\S+)
 
 Start
-  ^Interface ${INTERFACE} is.* -> Begin Interface
-  ^\s+inet ${IP_ADDRESS}/${PREFIX_LENGTH} -> Record
-  ^\s+inet6 ${IP_ADDRESS}/${PREFIX_LENGTH} -> Record
-
-Interface
-  ^.* -> Start
+  ^${INTERFACE}\s+${IP_ADDRESS}/${PREFIX}\s+${MAC_ADDRESS}\s+${VRF}\s+${MTU}\s+${STATE_LINK} -> Record

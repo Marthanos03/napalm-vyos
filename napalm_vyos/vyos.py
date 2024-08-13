@@ -20,13 +20,6 @@ Read https://napalm.readthedocs.io for more information.
 """
 
 from napalm.base import NetworkDriver
-from napalm.base.exceptions import (
-    ConnectionException,
-    SessionLockedException,
-    MergeConfigException,
-    ReplaceConfigException,
-    CommandErrorException,
-)
 from netmiko import ConnectHandler
 import os
 import textfsm
@@ -35,7 +28,8 @@ import textfsm
 class VyosDriver(NetworkDriver):
     """Napalm driver for Vyos."""
 
-    def __init__(self, hostname, username, password, timeout=60, optional_args=None):
+    def __init__(self, hostname, username, password, timeout=60,
+                 optional_args=None):
         """Constructor."""
         self.device = None
         self.hostname = hostname
@@ -48,6 +42,7 @@ class VyosDriver(NetworkDriver):
 
     def open(self):
         """Opens a connection to the device."""
+
         connect_params = {
             'device_type': 'vyos',
             'host': self.hostname,
@@ -59,11 +54,15 @@ class VyosDriver(NetworkDriver):
 
     def close(self):
         """Closes the connection to the device."""
+
         if self.device:
             self.device.disconnect()
 
     def is_alive(self):
         """check if there is a device connected"""
+
+        if self.device is None:
+            return {"is_alive": False}
         return {"is_alive": self.device.is_alive()}
 
     def get_facts(self):
@@ -78,27 +77,40 @@ class VyosDriver(NetworkDriver):
          * serial_number - Serial number of the device
          * interface_list - List of the interfaces of the device
          """
-        command = "show version"
-        output = self.connection.send_command(command)
 
-        # Use TextFSM to parse the output
-        template_path = os.path.join(os.path.dirname(__file__),
-                                     'utils',
-                                     'textfsm_templates',
-                                     'vyos_show_version.template')
-        with open(template_path) as template_file:
-            fsm = textfsm.TextFSM(template_file)
-            parsed_data = fsm.ParseText(output)
+        uptime_command = "show system uptime"
+        version_command = "show version"
+        host_command = "show host name"
+        uptime = self.device.send_command(uptime_command)
+        version = self.device.send_command(version_command)
+        host = self.device.send_command(host_command)
 
-        # Assume the parsed data is in the expected format
+        uptime_template = os.path.join(os.path.dirname(__file__),
+                                       'utils',
+                                       'textfsm_templates',
+                                       'vyos_show_system_uptime.template')
+
+        version_template = os.path.join(os.path.dirname(__file__),
+                                        'utils',
+                                        'textfsm_templates',
+                                        'vyos_show_version.template')
+
+        with open(uptime_template) as uptime_file:
+            fsm = textfsm.TextFSM(uptime_file)
+            uptime_data = fsm.ParseText(uptime)
+
+        with open(version_template) as version_file:
+            fsm = textfsm.TextFSM(version_file)
+            version_data = fsm.ParseText(version)
+
         facts = {
-            'uptime': parsed_data[0][4],
+            'uptime': uptime_data[0][0] + uptime_data[0][1],
             'vendor': 'VyOS',
-            'os_version': parsed_data[0][1],
-            'serial_number': parsed_data[0][3],
-            'model': parsed_data[0][2],
-            'hostname': parsed_data[0][0],
-            'fqdn': parsed_data[0][0],
+            'os_version': version_data[0][0],
+            'serial_number': version_data[0][1],
+            'model': version_data[0][2],
+            'hostname': host,
+            'fqdn': host,
             'interface_list': self.get_interfaces().keys()
         }
         return facts
@@ -115,15 +127,16 @@ class VyosDriver(NetworkDriver):
 
         if retrieve in ("all", "running"):
             command = "show configuration"
-            output = self.connection.send_command(command)
+            output = self.device.send_command(command)
             configs['running'] = output
 
         return configs
 
     def get_interfaces(self):
         """
-        Returns a dictionary of dictionaries. The keys for the first dictionary will be the \
-        interfaces in the devices. The inner dictionary will containing the following data for \
+        Returns a dictionary of dictionaries. The keys for the \
+        first dictionary will be the  interfaces in the devices. \
+        The inner dictionary will containing the following data for \
         each interface:
 
          * is_up (True/False)
@@ -135,12 +148,11 @@ class VyosDriver(NetworkDriver):
          * mac_address (string)
          """
         command = "show interfaces"
-        output = self.connection.send_command(command)
+        output = self.device.send_command(command)
 
-        # Use TextFSM to parse the output
         template_path = os.path.join(os.path.dirname(__file__),
                                      'utils',
-                                     'templates',
+                                     'textfsm_templates',
                                      'vyos_show_interfaces.template')
         with open(template_path) as template_file:
             fsm = textfsm.TextFSM(template_file)
@@ -150,67 +162,73 @@ class VyosDriver(NetworkDriver):
         for interface in parsed_data:
             name = interface[0]
             interfaces[name] = {
-                'is_up': interface[1] == 'up',
-                'is_enabled': interface[2] == 'up',
-                'description': interface[3],
-                'last_flapped': interface[4],
-                'speed': interface[6],
-                'mac_address': interface[5]
+                'is_up': interface[5][0] == 'u',
+                'is_enabled': interface[5][2] == 'u',
+                'description': "unknown",
+                'last_flapped': "unknown",
+                'speed': interface[4],
+                'mac_address': interface[2]
             }
         return interfaces
 
     def get_interfaces_ip(self):
         """
         Retrieve IP addresses assigned to the interfaces.
-        :return: A dictionary with interface names as keys and IP information as values.
+        :return: A dictionary with interface names as keys and IP information
+        as values.
         """
         command = "show interfaces"
-        output = self.connection.send_command(command)
+        output = self.device.send_command(command)
 
-        # Use TextFSM to parse the output
         template_path = os.path.join(os.path.dirname(__file__),
                                      'utils',
-                                     'templates',
+                                     'textfsm_templates',
                                      'vyos_show_interfaces_ip.template')
         with open(template_path) as template_file:
             fsm = textfsm.TextFSM(template_file)
             parsed_data = fsm.ParseText(output)
 
-        interfaces_ip = {}
-        for interface, ip, prefix in parsed_data:
-            if interface not in interfaces_ip:
-                interfaces_ip[interface] = {'ipv4': {}, 'ipv6': {}}
-            if ":" in ip:  # IPv6 address
-                interfaces_ip[interface]['ipv6'][ip] = {'prefix_length': int(prefix)}
-            else:  # IPv4 address
-                interfaces_ip[interface]['ipv4'][ip] = {'prefix_length': int(prefix)}
+        interface_ip = {}
+        for interface in parsed_data:
+            if interface[0] not in interface_ip:
+                interface_ip[interface[0]] = {'ipv4': {}, 'ipv6': {}}
+            if ":" in interface[1]:
+                interface_ip[interface[0]]['ipv6'][interface[1]] = \
+                    {'prefix_length': interface[2]}
+            else:
+                interface_ip[interface[0]]['ipv4'][interface[1]] = \
+                    {'prefix_length': interface[2]}
 
-        return interfaces_ip
+        return interface_ip
 
     def get_interfaces_counters(self):
         """
         Retrieve interface counters.
-        :return: A dictionary with interface names as keys and counters as values.
+        :return: A dictionary with interface names as keys and counters
+        as values.
         """
-        command = "show interfaces"
-        output = self.connection.send_command(command)
+        command = "show interfaces counters"
+        output = self.device.send_command(command)
 
-        # Use TextFSM to parse the output
         template_path = os.path.join(os.path.dirname(__file__),
                                      'utils',
-                                     'templates',
+                                     'textfsm_templates',
                                      'vyos_show_interfaces_counters.template')
         with open(template_path) as template_file:
             fsm = textfsm.TextFSM(template_file)
             parsed_data = fsm.ParseText(output)
 
         interfaces_counters = {}
-        for interface, rx_packets, tx_packets, rx_errors, tx_errors in parsed_data:
-            interfaces_counters[interface] = {
-                'tx_unicast_packets': int(tx_packets),
-                'rx_unicast_packets': int(rx_packets),
-                'tx_errors': int(tx_errors),
-                'rx_errors': int(rx_errors),
+        for interface in parsed_data:
+            interfaces_counters[interface[0]] = {
+                'tx_errors': int(interface[4]),
+                'rx_errors': int(interface[1]),
+                'tx_discards': int(interface[5]),
+                'rx_discards': int(interface[2]),
+                'tx_octets': int(interface[6]),
+                'rx_octets': int(interface[3]),
+                'tx_packets': int(interface[7]),
+                'rx_packets': int(interface[8]),
             }
 
         return interfaces_counters
