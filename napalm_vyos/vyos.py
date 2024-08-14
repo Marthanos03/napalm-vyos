@@ -20,6 +20,7 @@ Read https://napalm.readthedocs.io for more information.
 """
 
 from napalm.base import NetworkDriver
+from napalm.base.helpers import textfsm_extractor
 from netmiko import ConnectHandler
 import os
 import textfsm
@@ -85,23 +86,29 @@ class VyosDriver(NetworkDriver):
         version = self.device.send_command(version_command)
         host = self.device.send_command(host_command)
 
-        uptime_template = os.path.join(os.path.dirname(__file__),
-                                       'utils',
-                                       'textfsm_templates',
-                                       'vyos_show_system_uptime.template')
+        uptime_data = textfsm_extractor(VyosDriver,
+                                        'vyos_show_system_uptime.template',
+                                        uptime)
+        version_data = textfsm_extractor(VyosDriver,
+                                         'vyos_show_version.template',
+                                         version)
+        # uptime_template = os.path.join(os.path.dirname(__file__),
+        #                                'utils',
+        #                                'textfsm_templates',
+        #                                'vyos_show_system_uptime.template')
 
-        version_template = os.path.join(os.path.dirname(__file__),
-                                        'utils',
-                                        'textfsm_templates',
-                                        'vyos_show_version.template')
+        # version_template = os.path.join(os.path.dirname(__file__),
+        #                                 'utils',
+        #                                 'textfsm_templates',
+        #                                 'vyos_show_version.template')
 
-        with open(uptime_template) as uptime_file:
-            fsm = textfsm.TextFSM(uptime_file)
-            uptime_data = fsm.ParseText(uptime)
+        # with open(uptime_template) as uptime_file:s
+        #     fsm = textfsm.TextFSM(uptime_file)
+        #     uptime_data = fsm.ParseText(uptime)
 
-        with open(version_template) as version_file:
-            fsm = textfsm.TextFSM(version_file)
-            version_data = fsm.ParseText(version)
+        # with open(version_template) as version_file:
+        #     fsm = textfsm.TextFSM(version_file)
+        #     version_data = fsm.ParseText(version)
 
         facts = {
             'uptime': int(uptime_data[0][0])*60 +
@@ -155,6 +162,7 @@ class VyosDriver(NetworkDriver):
                                      'utils',
                                      'textfsm_templates',
                                      'vyos_show_interfaces.template')
+
         with open(template_path) as template_file:
             fsm = textfsm.TextFSM(template_file)
             parsed_data = fsm.ParseText(output)
@@ -165,7 +173,7 @@ class VyosDriver(NetworkDriver):
             interfaces[name] = {
                 'is_up': interface[5][0] == 'u',
                 'is_enabled': interface[5][2] == 'u',
-                'description': "unknown",
+                'description': "",
                 'last_flapped': "unknown",
                 'speed': interface[4],
                 'mac_address': interface[2]
