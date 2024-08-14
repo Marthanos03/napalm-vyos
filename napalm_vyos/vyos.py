@@ -85,38 +85,20 @@ class VyosDriver(NetworkDriver):
         uptime = self.device.send_command(uptime_command)
         version = self.device.send_command(version_command)
         host = self.device.send_command(host_command)
-
-        uptime_data = textfsm_extractor(VyosDriver,
-                                        'vyos_show_system_uptime.template',
+        uptime_data = textfsm_extractor(self,
+                                        'vyos_show_system_uptime',
                                         uptime)
-        version_data = textfsm_extractor(VyosDriver,
-                                         'vyos_show_version.template',
+        version_data = textfsm_extractor(self,
+                                         'vyos_show_version',
                                          version)
-        # uptime_template = os.path.join(os.path.dirname(__file__),
-        #                                'utils',
-        #                                'textfsm_templates',
-        #                                'vyos_show_system_uptime.template')
-
-        # version_template = os.path.join(os.path.dirname(__file__),
-        #                                 'utils',
-        #                                 'textfsm_templates',
-        #                                 'vyos_show_version.template')
-
-        # with open(uptime_template) as uptime_file:s
-        #     fsm = textfsm.TextFSM(uptime_file)
-        #     uptime_data = fsm.ParseText(uptime)
-
-        # with open(version_template) as version_file:
-        #     fsm = textfsm.TextFSM(version_file)
-        #     version_data = fsm.ParseText(version)
 
         facts = {
-            'uptime': int(uptime_data[0][0])*60 +
-            int(uptime_data[0][1]),
+            'uptime': int(uptime_data[0]["minutes"])*60 +
+            int(uptime_data[0]["seconds"]),
             'vendor': 'VyOS',
-            'os_version': version_data[0][0],
-            'serial_number': version_data[0][1],
-            'model': version_data[0][2],
+            'os_version': version_data[0]["version"],
+            'serial_number': version_data[0]["serial_number"],
+            'model': version_data[0]["model"],
             'hostname': host,
             'fqdn': host,
             'interface_list': [key for key in self.get_interfaces().keys()]
@@ -158,25 +140,18 @@ class VyosDriver(NetworkDriver):
         command = "show interfaces"
         output = self.device.send_command(command)
 
-        template_path = os.path.join(os.path.dirname(__file__),
-                                     'utils',
-                                     'textfsm_templates',
-                                     'vyos_show_interfaces.template')
-
-        with open(template_path) as template_file:
-            fsm = textfsm.TextFSM(template_file)
-            parsed_data = fsm.ParseText(output)
+        parsed_data = textfsm_extractor(self, "vyos_show_interfaces", output)
 
         interfaces = {}
         for interface in parsed_data:
-            name = interface[0]
+            name = interface["interface"]
             interfaces[name] = {
-                'is_up': interface[5][0] == 'u',
-                'is_enabled': interface[5][2] == 'u',
+                'is_up': interface["state_link"][0] == 'u',
+                'is_enabled': interface["state_link"][2] == 'u',
                 'description': "",
-                'last_flapped': "unknown",
-                'speed': interface[4],
-                'mac_address': interface[2]
+                'last_flapped': -1.0,
+                'speed': interface["mtu"],
+                'mac_address': interface["mac_address"]
             }
         return interfaces
 
@@ -188,25 +163,18 @@ class VyosDriver(NetworkDriver):
         """
         command = "show interfaces"
         output = self.device.send_command(command)
-
-        template_path = os.path.join(os.path.dirname(__file__),
-                                     'utils',
-                                     'textfsm_templates',
-                                     'vyos_show_interfaces_ip.template')
-        with open(template_path) as template_file:
-            fsm = textfsm.TextFSM(template_file)
-            parsed_data = fsm.ParseText(output)
+        parsed_data = textfsm_extractor(self, 'vyos_show_interfaces_ip', output)
 
         interface_ip = {}
         for interface in parsed_data:
-            if interface[0] not in interface_ip:
-                interface_ip[interface[0]] = {'ipv4': {}, 'ipv6': {}}
-            if ":" in interface[1]:
-                interface_ip[interface[0]]['ipv6'][interface[1]] = \
-                    {'prefix_length': interface[2]}
+            if interface["interface"] not in interface_ip:
+                interface_ip[interface["interface"]] = {'ipv4': {}, 'ipv6': {}}
+            if ":" in interface["ip_address"]:
+                interface_ip[interface["interface"]]['ipv6'][interface["ip_address"]] = \
+                    {'prefix_length': interface["prefix"]}
             else:
-                interface_ip[interface[0]]['ipv4'][interface[1]] = \
-                    {'prefix_length': interface[2]}
+                interface_ip[interface["interface"]]['ipv4'][interface["ip_address"]] = \
+                    {'prefix_length': interface["prefix"]}
 
         return interface_ip
 
@@ -219,44 +187,19 @@ class VyosDriver(NetworkDriver):
         command = "show interfaces counters"
         output = self.device.send_command(command)
 
-        template_path = os.path.join(os.path.dirname(__file__),
-                                     'utils',
-                                     'textfsm_templates',
-                                     'vyos_show_interfaces_counters.template')
-        with open(template_path) as template_file:
-            fsm = textfsm.TextFSM(template_file)
-            parsed_data = fsm.ParseText(output)
+        parsed_data = textfsm_extractor(self, 'vyos_show_interfaces_counters', output)
 
         interfaces_counters = {}
         for interface in parsed_data:
-            interfaces_counters[interface[0]] = {
-                'tx_errors': int(interface[4]),
-                'rx_errors': int(interface[1]),
-                'tx_discards': int(interface[5]),
-                'rx_discards': int(interface[2]),
-                'tx_octets': int(interface[6]),
-                'rx_octets': int(interface[3]),
-                'tx_packets': int(interface[7]),
-                'rx_packets': int(interface[8]),
+            interfaces_counters[interface["interface"]] = {
+                'tx_errors': int(interface['tx_errors']),
+                'rx_errors': int(interface["rx_errors"]),
+                'tx_discards': int(interface['tx_discards']),
+                'rx_discards': int(interface['rx_discards']),
+                'tx_octets': int(interface['tx_octets']),
+                'rx_octets': int(interface['rx_octets']),
+                'tx_packets': int(interface['tx_packets']),
+                'rx_packets': int(interface['rx_packets']),
             }
 
         return interfaces_counters
-
-
-# driver = VyosDriver(hostname='192.168.0.28', username='vyos', password='vyos')
-
-# print(driver.is_alive())
-
-# driver.open()
-
-# print(driver.is_alive())
-
-# print(driver.get_facts())
-# # print(driver.get_interfaces())
-# # print(driver.get_interfaces_counters())
-# # print(driver.get_interfaces_ip())
-# # print(driver.get_config())
-
-# driver.close()
-
-# print(driver.is_alive())
