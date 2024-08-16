@@ -1,0 +1,4 @@
+Interface    Rx Packets    Rx Bytes    Tx Packets    Tx Bytes    Rx Dropped    Tx Dropped    Rx Errors    Tx Errors
+-----------  ------------  ----------  ------------  ----------  ------------  ------------  -----------  -----------
+eth0         404           43851       209           27033       0             0             0            0
+lo           116           8664        116           8664        0             0             0            0

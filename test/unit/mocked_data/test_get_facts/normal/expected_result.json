@@ -1,0 +1,10 @@
+{
+    "uptime": 944,
+    "vendor": "VyOS",
+    "os_version": "VyOS 1.5-rolling-202408130022",
+    "serial_number": "VMware-56 4d bb bd b6 96 e5 31-47 7a 18 e1 c1 09 fa f7",
+    "model": "VMware Virtual Platform",
+    "hostname": "vyos",
+    "fqdn": "vyos",
+    "interface_list": ["eth0", "lo"]
+}

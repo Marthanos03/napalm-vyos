@@ -1,0 +1,20 @@
+{
+    "eth0":
+    {
+        "is_up": true,
+        "is_enabled": true,
+        "description": "",
+        "last_flapped": -1.0,
+        "speed": "1500",
+        "mac_address": "00:0c:29:09:fa:f7"
+        },
+    "lo":
+    {
+        "is_up": true,
+        "is_enabled": true,
+        "description": "",
+        "last_flapped": -1.0,
+        "speed": "65536",
+        "mac_address": "00:00:00:00:00:00"
+    }
+}

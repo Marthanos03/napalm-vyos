@@ -1,0 +1,24 @@
+{
+    "eth0":
+    {
+        "tx_errors": 0,
+        "rx_errors": 0,
+        "tx_discards": 0,
+        "rx_discards": 0,
+        "tx_octets": 40420,
+        "rx_octets": 81313,
+        "tx_packets": 285,
+        "rx_packets": 665
+    }, 
+    "lo":
+    {
+        "tx_errors": 0,
+        "rx_errors": 0,
+        "tx_discards": 0,
+        "rx_discards": 0,
+        "tx_octets": 12556,
+        "rx_octets": 12556,
+        "tx_packets": 168,
+        "rx_packets": 168
+    }
+}

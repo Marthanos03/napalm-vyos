@@ -1,0 +1,19 @@
+Version:          VyOS 1.5-rolling-202408130022
+Release train:    current
+Release flavor:   generic
+
+Built by:         autobuild@vyos.net
+Built on:         Tue 13 Aug 2024 02:56 UTC
+Build UUID:       274c0be6-bb35-4d12-94c1-823c06b5ef2b
+Build commit ID:  c75174bb4a2230
+
+Architecture:     x86_64
+Boot via:         installed image
+System type:      VMware guest
+
+Hardware vendor:  VMware, Inc.
+Hardware model:   VMware Virtual Platform
+Hardware S/N:     VMware-56 4d bb bd b6 96 e5 31-47 7a 18 e1 c1 09 fa f7
+Hardware UUID:    bdbb4d56-96b6-31e5-477a-18e1c109faf7
+
+Copyright:        VyOS maintainers and contributors

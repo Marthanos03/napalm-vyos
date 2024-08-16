@@ -1,0 +1,66 @@
+interfaces {
+    ethernet eth0 {
+        address dhcp
+        hw-id 00:0c:29:09:fa:f7
+        offload {
+            gro
+            gso
+            sg
+            tso
+        }
+    }
+    loopback lo {
+    }
+}
+service {
+    ntp {
+        allow-client {
+            address 127.0.0.0/8
+            address 169.254.0.0/16
+            address 10.0.0.0/8
+            address 172.16.0.0/12
+            address 192.168.0.0/16
+            address ::1/128
+            address fe80::/10
+            address fc00::/7
+        }
+        server time1.vyos.net {
+        }
+        server time2.vyos.net {
+        }
+        server time3.vyos.net {
+        }
+    }
+    ssh {
+        port 22
+    }
+}
+system {
+    config-management {
+        commit-revisions 100
+    }
+    console {
+        device ttyS0 {
+            speed 115200
+        }
+    }
+    host-name vyos
+    login {
+        user vyos {
+            authentication {
+                encrypted-password ****************
+                plaintext-password ****************
+            }
+        }
+    }
+    syslog {
+        global {
+            facility all {
+                level info
+            }
+            facility local7 {
+                level debug
+            }
+        }
+    }
+}
