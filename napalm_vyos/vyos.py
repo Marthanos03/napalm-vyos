@@ -91,10 +91,13 @@ class VyosDriver(NetworkDriver):
         version_data = textfsm_extractor(self,
                                          'vyos_show_version',
                                          version)
-
+        uptime = float(uptime_data[0]["seconds"])
+        if (uptime_data[0]["minutes"]):
+            uptime += float(uptime_data[0]["minutes"]) * 60
+            if (uptime_data[0]["hours"]):
+                uptime += float(uptime_data[0]["hours"]) * 60 * 60
         facts = {
-            'uptime': int(uptime_data[0]["minutes"])*60 +
-            int(uptime_data[0]["seconds"]),
+            'uptime': uptime,
             'vendor': 'VyOS',
             'os_version': version_data[0]["version"],
             'serial_number': version_data[0]["serial_number"],
@@ -110,9 +113,9 @@ class VyosDriver(NetworkDriver):
         Return the configuration of a device.
         """
         configs = {
-            'running': '',
-            'startup': '',
-            'candidate': ''
+            "running": "",
+            "candidate": "",
+            'startup': ""
         }
 
         if retrieve in ("all", "running"):
@@ -150,7 +153,8 @@ class VyosDriver(NetworkDriver):
                 'is_enabled': interface["state_link"][2] == 'u',
                 'description': "",
                 'last_flapped': -1.0,
-                'speed': interface["mtu"],
+                'speed': float(interface["mtu"]),
+                'mtu': int(interface['mtu']),
                 'mac_address': interface["mac_address"]
             }
         return interfaces
@@ -171,10 +175,10 @@ class VyosDriver(NetworkDriver):
                 interface_ip[interface["interface"]] = {'ipv4': {}, 'ipv6': {}}
             if ":" in interface["ip_address"]:
                 interface_ip[interface["interface"]]['ipv6'][interface["ip_address"]] = \
-                    {'prefix_length': interface["prefix"]}
+                    {'prefix_length': int(interface["prefix"])}
             else:
                 interface_ip[interface["interface"]]['ipv4'][interface["ip_address"]] = \
-                    {'prefix_length': interface["prefix"]}
+                    {'prefix_length': int(interface["prefix"])}
 
         return interface_ip
 
@@ -198,8 +202,12 @@ class VyosDriver(NetworkDriver):
                 'rx_discards': int(interface['rx_discards']),
                 'tx_octets': int(interface['tx_octets']),
                 'rx_octets': int(interface['rx_octets']),
-                'tx_packets': int(interface['tx_packets']),
-                'rx_packets': int(interface['rx_packets']),
+                'tx_unicast_packets': int(interface['tx_packets']),
+                'rx_unicast_packets': int(interface['rx_packets']),
+                'tx_multicast_packets': int(interface['tx_packets']),
+                'rx_multicast_packets': int(interface['rx_packets']),
+                'tx_broadcast_packets': int(interface['tx_packets']),
+                'rx_broadcast_packets': int(interface['rx_packets']),
             }
 
         return interfaces_counters

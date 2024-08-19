@@ -1,4 +1,4 @@
-# Copyright 2016 Dravetech AB. All rights reserved.
+# Copyright 2015 Spotify AB. All rights reserved.
 #
 # The contents of this file are licensed under the Apache License, Version 2.0
 # (the "License"); you may not use this file except in compliance with the
@@ -12,8 +12,6 @@
 # License for the specific language governing permissions and limitations under
 # the License.
 
-"""Tests."""
-
 import unittest
 
 from napalm_vyos import vyos
@@ -21,19 +19,18 @@ from napalm.base.test.base import TestConfigNetworkDriver
 
 
 class TestConfigVyosDriver(unittest.TestCase, TestConfigNetworkDriver):
-    """Group of tests that test Configuration related methods."""
 
     @classmethod
     def setUpClass(cls):
-        """Run before starting the tests."""
         hostname = '127.0.0.1'
         username = 'vagrant'
         password = 'vagrant'
         cls.vendor = 'vyos'
+        cls.port = '12206'
 
-        optional_args = {'port': 12443, }
-        cls.device = vyos.VyosDriver(hostname, username, password, timeout=60,
-                                             optional_args=optional_args)
+        optional_args = {'port': '12206'}
+        cls.device = vyos.VyosDriver(hostname, username, password,
+                                     timeout=60, optional_args=optional_args)
         cls.device.open()
 
         cls.device.load_replace_candidate(filename='%s/initial.conf' % cls.vendor)

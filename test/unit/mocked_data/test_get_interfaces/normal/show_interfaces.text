@@ -1,0 +1,6 @@
+Codes: S - State, L - Link, u - Up, D - Down, A - Admin Down
+Interface    IP Address       MAC                VRF        MTU  S/L    Description
+-----------  ---------------  -----------------  -------  -----  -----  -------------
+eth0         192.168.0.20/24  00:0c:29:09:fa:f7  default   1500  u/u
+lo           127.0.0.1/8      00:00:00:00:00:00  default  65536  u/u
+             ::1/128

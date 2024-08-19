@@ -55,13 +55,11 @@ class TestGetterDriver(unittest.TestCase, TestGettersNetworkDriver):
         cls.vendor = 'vyos'
 
         optional_args = {'port': 12443, }
-        cls.device = vyos.VyosDriver(hostname, username, password, timeout=60,
+        cls = vyos.VyosDriver(hostname, username, password, timeout=60,
                                              optional_args=optional_args)
 
-        if cls.mock:
-            cls.device.device = FakeDevice()
-        else:
-            cls.device.open()
+        cls.device = FakeDevice()
+        cls.open()
 
 
 class FakeDevice:

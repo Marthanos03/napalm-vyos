@@ -28,30 +28,39 @@ def pytest_generate_tests(metafunc):
 
 
 class PatchedVyosDriver(vyos.VyosDriver):
-    """Patched Vyos Driver."""
+    """Patched VyOS Driver."""
 
     def __init__(self, hostname, username, password, timeout=60, optional_args=None):
-        """Patched Vyos Driver constructor."""
         super().__init__(hostname, username, password, timeout, optional_args)
 
         self.patched_attrs = ['device']
-        self.device = FakeVyosDevice()
+        self.device = FakeVyOSDevice()
+
+    def close(self):
+        pass
+
+    def is_alive(self):
+        return {
+            'is_alive': True  # In testing everything works..
+        }
+
+    def open(self):
+        pass
 
 
-class FakeVyosDevice(BaseTestDouble):
-    """Vyos device test double."""
+class FakeVyOSDevice(BaseTestDouble):
+    """VyOS device test double."""
 
-    def run_commands(self, command_list, encoding='json'):
-        """Fake run_commands."""
-        result = list()
+    def __init__(self):
+        self.mode_config = False
 
-        for command in command_list:
-            filename = '{}.{}'.format(self.sanitize_text(command), encoding)
-            full_path = self.find_file(filename)
+    def send_command(self, command, **kwargs):
+        filename = '{}.text'.format(self.sanitize_text(command))
+        full_path = self.find_file(filename)
+        return self.read_txt_file(full_path)
 
-            if encoding == 'json':
-                result.append(self.read_json_file(full_path))
-            else:
-                result.append({'output': self.read_txt_file(full_path)})
+    def config_mode(self):
+        self.mode_config = True
 
-        return result
+    def exit_config_mode(self):
+        self.mode_config = False
